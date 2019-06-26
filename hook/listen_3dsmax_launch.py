@@ -41,7 +41,7 @@ def on_application_launch(event):
     logger.debug('Adding 3dsmax pipeline environments.')
 
     # Add dependencies in pythonpath
-    ftrack_connect.application.appendPath(
+    ftrack_connect.application.prependPath(
         python_dependencies,
         'PYTHONPATH',
         event['data']['options']['env']
@@ -60,6 +60,7 @@ def on_application_launch(event):
         event['data']['options']['env']
     )
 
+    # removing perforce from the equation ?
     paths = event['data']['options']['env']['PATH']
     new_paths = ';'.join(
         [

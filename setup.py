@@ -129,6 +129,9 @@ setup(
         'sphinx_rtd_theme >= 0.1.6, < 2',
         'lowdown >= 0.1.0, < 2'
     ],
+    install_requires=[
+        'qtpy >=1.0.0, < 2'
+    ],
     tests_require=[
         'pytest >= 2.3.5, < 3'
     ],

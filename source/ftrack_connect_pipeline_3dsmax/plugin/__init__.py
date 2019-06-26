@@ -5,9 +5,15 @@ from ftrack_connect_pipeline import plugin
 from ftrack_connect_pipeline import constants
 from ftrack_connect_pipeline_3dsmax import constants as max_constants
 
+import pymxs
+
 
 class _BaseMax(plugin._Base):
     host = max_constants.HOST
+
+    def _run(self, event):
+        with pymxs.mxstoken():
+            return super(_BaseMax, self)._run(event)
 
 
 class BaseMaxPlugin(plugin.BasePlugin, _BaseMax):
