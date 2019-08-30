@@ -10,12 +10,12 @@ from ftrack_connect_pipeline_3dsmax.constants import HOST, UI
 class QtPipelineMaxPublishWidget(QtWidgets.QDockWidget):
     '''Dockable maya load widget'''
 
-    def __init__(self, hostid, parent=None):
+    def __init__(self, event_manager, parent=None):
         super(QtPipelineMaxPublishWidget, self).__init__(parent=parent)
         self.my_widget = QtPipelinePublishWidget(
-            host=HOST, ui=UI, hostid=hostid, parent=parent
+            event_manager=event_manager, parent=parent
         )
-        self.setWindowTitle('Max Pipeline Publisher')
+        self.setWindowTitle('Max Pipeline Publisher {}'.format(event_manager.hostid))
         self.setObjectName('Max Pipeline Publisher')
         self.setWidget(self.my_widget)
         parent.addDockWidget(QtCore.Qt.RightDockWidgetArea, self)

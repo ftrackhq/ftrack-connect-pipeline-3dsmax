@@ -34,10 +34,10 @@ def mark_menu(hostid, event):
         # TODO: remove marked menu
 
 
-def notify_connected_client(session, hostid):
+def notify_connected_client(event_manager):
     '''event handler to notify connected clients.'''
-    event_handler = functools.partial(mark_menu, hostid)
+    event_handler = functools.partial(mark_menu, event_manager.hostid)
 
-    session.event_hub.subscribe(
+    event_manager.session.event_hub.subscribe(
         'topic={}'.format(constants.PIPELINE_CONNECT_CLIENT), event_handler
     )
