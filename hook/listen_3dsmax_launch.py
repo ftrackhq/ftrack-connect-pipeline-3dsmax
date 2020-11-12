@@ -7,6 +7,8 @@ import os
 import ftrack_api
 import ftrack_connect.application
 
+from functools import partial
+
 logger = logging.getLogger('ftrack_connect_pipeline_3dsmax.listen_3dsmax_launch')
 
 plugin_base_dir = os.path.normpath(
@@ -34,7 +36,7 @@ max_startup_folder = os.path.abspath(os.path.join(max_script_path, 'startup'))
 max_startup_script = os.path.join(max_startup_folder, 'initftrack.ms')
 
 
-def on_application_launch(event):
+def on_application_launch(session, event):
     '''Handle application launch and add environment to *event*.'''
 
     logger.debug('Adding 3dsmax pipeline environments.')
@@ -86,13 +88,45 @@ def on_application_launch(event):
     )
 
 
+
+    ######################
+    entity = event['data']['context']['selection'][0]
+    task = session.get('Context', entity['entityId'])
+
+    data = {
+        'integration': {
+            "name": 'ftrack-connect-3dmax',
+            'version': '0.0.1'
+        },
+        'env': {
+            'PYTHONPATH.prepend': os.path.pathsep.join(
+                [python_dependencies, max_script_path]),
+            '3DSMAX_PLUG_IN_PATH': max_connect_plugins_path,
+            'PATH.prepend': max_startup_folder,
+            'FTRACK_EVENT_PLUGIN_PATH': plugin_hook,
+            'FTRACK_TASKID.set': task['id'],
+            'FTRACK_SHOTID.set': task['parent']['id'],
+            'LOGNAME.set': session._api_user,
+            'FTRACK_APIKEY.set': session._api_key
+        }
+    }
+    return data
+
+    ######################
+
+
+
+    #return event['data']['options']
+
 def register(session):
     '''Subscribe to application launch events on *registry*.'''
     if not isinstance(session, ftrack_api.session.Session):
         return
 
+    handle_event = partial(on_application_launch, session)
+
     session.event_hub.subscribe(
         'topic=ftrack.connect.application.launch'
         ' and data.application.identifier=3ds_max*',
-        on_application_launch, priority=40
+        handle_event, priority=40
     )
