@@ -7,7 +7,7 @@ from ftrack_connect_pipeline.asset.dcc_object import DccObject
 from ftrack_connect_pipeline_3dsmax.constants import asset as asset_const
 from ftrack_connect_pipeline_3dsmax.utils import custom_commands as max_utils
 
-# import maya.cmds as cmds
+from pymxs import runtime as rt
 
 
 class MaxDccObject(DccObject):
@@ -32,19 +32,39 @@ class MaxDccObject(DccObject):
         Sets the given *v* into the given *k* and automatically set the
         attributes of the current self :obj:`name` on the DCC
         '''
-        # cmds.setAttr('{}.{}'.format(self.name, k), l=False)
-        # if k == asset_const.VERSION_NUMBER:
-        #     cmds.setAttr('{}.{}'.format(self.name, k), v, l=True)
-        # elif k == asset_const.REFERENCE_OBJECT:
-        #     cmds.setAttr(
-        #         '{}.{}'.format(self.name, k),
-        #         str(self.name),
-        #         type="string",
-        #         l=True,
+        dcc_object = rt.getNodeByName(self.name, exact=True)
+        # Get the Max Dcc object
+        if not dcc_object:
+            self.logger.warning(
+                'Could not find MaxDccObject with name {}'.format(self.name)
+            )
+            return
+        # Unfreeze the object to enable modifications
+        try:
+            rt.unfreeze(dcc_object)
+        except:
+            self.logger.debug(
+                "Could not unfreeze object {0}".format(dcc_object.Name))
+
+        if str(k) == asset_const.REFERENCE_OBJECT:
+            rt.setProperty(dcc_object, k, str(self.name))
+        elif str(k) == asset_const.IS_LATEST_VERSION:
+            rt.setProperty(dcc_object, k, bool(v))
+        # TODO: Check if this is necesary, shouldnt be.
+        # elif str(k) == asset_const.ASSET_INFO_OPTIONS:
+        #     decoded_value = self.asset_info[str(k)]
+        #     json_data = json.dumps(decoded_value)
+        #     if six.PY2:
+        #         encoded_value = base64.b64encode(json_data)
+        #     else:
+        #         input_bytes = json_data.encode('utf8')
+        #         encoded_value = base64.b64encode(input_bytes).decode('ascii')
+        #     rt.setProperty(
+        #         dcc_object, k, str(encoded_value)
         #     )
-        # elif k == asset_const.IS_LATEST_VERSION:
-        #     cmds.setAttr('{}.{}'.format(self.name, k), bool(v), l=True)
-        #
+        else:
+            rt.setProperty(dcc_object, k, v)
+        # TODO: This might be necessary.
         # elif k == asset_const.DEPENDENCY_IDS:
         #     cmds.setAttr(
         #         '{}.{}'.format(self.name, k),
@@ -53,10 +73,17 @@ class MaxDccObject(DccObject):
         #         l=True
         #     )
         #
-        # else:
-        #     cmds.setAttr(
-        #         '{}.{}'.format(self.name, k), v, type="string", l=True
-        #     )
+
+        # Freeze the object to make sure no one make modifications on it.
+        try:
+            rt.freeze(dcc_object)
+        except Exception as e:
+            self.logger.debug(
+                "Could not freeze object {0}, Error: {1}".format(
+                    dcc_object.Name, e
+                )
+            )
+
         super(MaxDccObject, self).__setitem__(k, v)
 
     def create(self, name):
@@ -68,10 +95,22 @@ class MaxDccObject(DccObject):
             self.logger.error(error_message)
             raise RuntimeError(error_message)
 
-        # dcc_object = cmds.createNode(asset_const.FTRACK_PLUGIN_TYPE, name=name)
+        dcc_object = rt.FtrackAssetHelper()
+        dcc_object.Name = name
+
+        # Try to freeze the helper object and lock the transform.
+        try:
+            rt.freeze(dcc_object)
+            rt.setTransformLockFlags(dcc_object, rt.name("all"))
+        except Exception as e:
+            self.logger.debug(
+                "Could not freeze object {0}, Error: {1}".format(
+                    name, e
+                )
+            )
 
         self.logger.debug('Creating new dcc object {}'.format(dcc_object))
-        self.name = dcc_object
+        self.name = name
         return self.name
 
     def _name_exists(self, name):
@@ -79,8 +118,8 @@ class MaxDccObject(DccObject):
         Return true if the given *name* exists in the scene.
         '''
 
-        # if cmds.objExists(name):
-        #    return True
+        if rt.getNodeByName(name, exact=True):
+            return True
 
         return False
 
