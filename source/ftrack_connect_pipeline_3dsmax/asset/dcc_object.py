@@ -129,17 +129,15 @@ class MaxDccObject(DccObject):
         with the given *asset_info_id* and returns them if matches.
         '''
         ftrack_asset_nodes = max_utils.get_ftrack_nodes()
-        for dcc_object_name in ftrack_asset_nodes:
+        for dcc_object in ftrack_asset_nodes:
 
-            # id_value = cmds.getAttr(
-            #     '{}.{}'.format(dcc_object_name, asset_const.ASSET_INFO_ID)
-            # )
+            id_value = rt.getProperty(dcc_object, asset_const.ASSET_INFO_ID)
 
             if id_value == asset_info_id:
                 self.logger.debug(
-                    'Found existing object: {}'.format(dcc_object_name)
+                    'Found existing object: {}'.format(dcc_object.Name)
                 )
-                self.name = dcc_object_name
+                self.name = dcc_object.Name
                 return self.name
 
         self.logger.debug(
@@ -162,17 +160,26 @@ class MaxDccObject(DccObject):
             '{0}.{1}'.format(__name__, __class__.__name__)
         )
         param_dict = {}
-        # if not cmds.objExists(object_name):
-        #    error_message = "{} Object doesn't exists".format(object_name)
-        #    logger.error(error_message)
-        #    return param_dict
-        # all_attr = cmds.listAttr(object_name, c=True, se=True)
-        for attr in all_attr:
-            # if cmds.attributeQuery(attr, node=object_name, msg=True):
-            #    continue
-            # attr_value = cmds.getAttr('{}.{}'.format(object_name, attr))
-            param_dict[attr] = attr_value
+        dcc_object = rt.getNodeByName(object_name, exact=True)
+        # Get the Max Dcc object
+        if not dcc_object:
+            error_message = "{} Object doesn't exists".format(object_name)
+            logger.error(error_message)
+            return param_dict
+        # Get properties from the object
+        for attr in rt.getPropNames(dcc_object):
+            param_dict[str(attr)] = rt.getProperty(dcc_object, attr)
         return param_dict
+
+    def is_dcc_object(self, object):
+        '''
+        Checks if the given *object* has the same ClassID as the
+        current ftrack_plugin_id
+        '''
+        if object.ClassID == self.ftrack_plugin_id:
+            return True
+
+        return False
 
     def connect_objects(self, objects):
         '''
@@ -181,15 +188,22 @@ class MaxDccObject(DccObject):
 
         *objects* List of Max DAG objects
         '''
-        # for obj in objects:
-        # if cmds.lockNode(obj, q=True)[0]:
-        #     cmds.lockNode(obj, l=False)
-        #
-        # if not cmds.attributeQuery('ftrack', n=obj, exists=True):
-        #     cmds.addAttr(obj, ln='ftrack', at='message')
-        #
-        # if not cmds.listConnections('{}.ftrack'.format(obj)):
-        #     cmds.connectAttr(
-        #         '{}.{}'.format(self.name, asset_const.ASSET_LINK),
-        #         '{}.ftrack'.format(obj),
-        #     )
+
+        #Get DCC object
+        dcc_object = rt.getNodeByName(self.name, exact=True)
+
+        max_utils.deselect_all()
+        for obj in objects:
+            max_utils.add_node_to_selection(obj)
+
+        # Get max root node
+        root_node = rt.rootScene.world
+        # Parent selected nodes to DCCobject
+        for node in rt.GetCurrentSelection():
+            if node.Parent == root_node or not node.Parent:
+                node.Parent = dcc_object
+                self.logger.debug(
+                    'Node {} added to dcc_object {}'.format(
+                        node, dcc_object
+                    )
+                )
