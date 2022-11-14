@@ -59,7 +59,7 @@ def get_main_window():
 ### OBJECT OPERATIONS ###
 
 def get_ftrack_nodes():
-    '''Returns al DCC objects in the scene'''
+    '''Returns all DCC objects in the scene'''
     dcc_objects = []
     for obj in rt.rootScene.world.children:
         if rt.SuperClassOf(obj) == rt.helper:
@@ -82,16 +82,16 @@ def get_current_scene_objects():
 def collect_children_nodes(node):
     '''Return all the children of the given *node*'''
     child_nodes = []
-    for c in node.Children:
-        _collect_children_nodes(c, child_nodes)
+    for child in node.Children:
+        _collect_children_nodes(child, child_nodes)
 
     return child_nodes
 
 
 def _collect_children_nodes(n, nodes):
     '''Private function to recursively return children of the given *nodes*'''
-    for c in n.Children:
-        _collect_children_nodes(c, nodes)
+    for child in n.Children:
+        _collect_children_nodes(child, nodes)
 
     nodes.append(n)
 
@@ -191,9 +191,9 @@ def re_import_scene_XRef(file_path, parent_helper_node_name):
     '''Import a Max scene file as a Scene XRef asset and parent it
     under the given *parent_helper_node_name*.'''
     node = rt.getNodeByName(parent_helper_node_name, exact=True)
-    scn = rt.xrefs.addNewXRefFile(file_path)
-    scn.parent = node
-    return scn
+    scene_node = rt.xrefs.addNewXRefFile(file_path)
+    scene_node.parent = node
+    return scene_node
 
 
 def import_obj_XRefs(file_path, options=None):
