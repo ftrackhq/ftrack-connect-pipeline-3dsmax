@@ -183,8 +183,8 @@ def open_file(path, options=None):
 
 def import_scene_XRef(file_path, options=None):
     '''Import a Max scene file as a Scene XRef asset.'''
-    scn = rt.xrefs.addNewXRefFile(file_path)
-    return scn
+    scene_node = rt.xrefs.addNewXRefFile(file_path)
+    return scene_node
 
 
 def re_import_scene_XRef(file_path, parent_helper_node_name):
