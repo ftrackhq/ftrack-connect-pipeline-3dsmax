@@ -192,18 +192,43 @@ class MaxDccObject(DccObject):
         #Get DCC object
         dcc_object = rt.getNodeByName(self.name, exact=True)
 
+        # Set all connected objects to Asset link attribute for reference.
+        # And set dcc_object name to ftrack attribute of all the objects.
+        # Always query from the custom ftrack attribute of the objects and not
+        # from the asset link, as it is not a live connection, so the
+        # asset_link names could be wrong, but the dcc_object id can't be
+        # changed, so we can relay on it.
+
+        # Create the custom attribute command.
+        attr_command = '''attributes "CustomFtrackAttr"
+            (
+                parameters pblock
+                    (
+                        ftrack type:#string default:""
+                    )
+            )'''
+
+
+        id_value = rt.getProperty(dcc_object, asset_const.ASSET_INFO_ID)
+
         max_utils.deselect_all()
         for obj in objects:
-            max_utils.add_node_to_selection(obj)
+            # Make sure ftrack attribute is created
+            if not rt.isProperty(obj, "ftrack"):
+                # Exacute the attr command
+                attr = rt.execute(attr_command)
+                # Add the custom command to the object
+                rt.custAttributes.add(obj.baseObject, attr)
+            # Set the asset info id as value for the ftrack attribute
+            rt.setProperty(obj, "ftrack", str(id_value))
+            # Just for reference, set the name of the current obeject to
+            # the asset_link
+            #TODO: Check if 3dsmax has a unic id for the objects, and in case,
+            # set that id to the asset_link attribute instead of the name.
+            rt.setProperty(dcc_object, asset_const.ASSET_LINK, str(obj.Name))
 
-        # Get max root node
-        root_node = rt.rootScene.world
-        # Parent selected nodes to DCCobject
-        for node in rt.GetCurrentSelection():
-            if node.Parent == root_node or not node.Parent:
-                node.Parent = dcc_object
-                self.logger.debug(
-                    'Node {} added to dcc_object {}'.format(
-                        node, dcc_object
-                    )
+            self.logger.debug(
+                'Node {} added to dcc_object {}'.format(
+                    obj, dcc_object
                 )
+            )

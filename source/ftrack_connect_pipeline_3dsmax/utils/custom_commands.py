@@ -115,6 +115,19 @@ def delete_node(node):
     ''' Delete the given *node*'''
     rt.delete(node)
 
+def get_connected_objects_from_dcc_object(dcc_object_name):
+    '''Return all objects connected to the given *dcc_object_name*'''
+    objects = []
+    dcc_object = rt.getNodeByName(dcc_object_name, exact=True)
+    if not dcc_object:
+        return
+    id_value = rt.getProperty(dcc_object, asset_const.ASSET_INFO_ID)
+    for obj in rt.rootScene.world.children:
+        if rt.isProperty(obj, "ftrack"):
+            if id_value == rt.getProperty(obj, "ftrack"):
+                objects.append(obj)
+    return objects
+
 
 ### SELECTION ###
 
