@@ -228,3 +228,4 @@ class MaxDccObject(DccObject):
             self.logger.debug(
                 'Node {} added to dcc_object {}'.format(obj, dcc_object)
             )
+
