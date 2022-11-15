@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 ### COMMON UTILS ###
 
+
 def run_in_main_thread(f):
     '''Make sure a function runs in the main Max thread.'''
 
@@ -57,6 +58,7 @@ def get_main_window():
 
 
 ### OBJECT OPERATIONS ###
+
 
 def get_ftrack_nodes():
     '''Returns all DCC objects in the scene'''
@@ -112,8 +114,9 @@ def node_exists(node_name):
 
 
 def delete_node(node):
-    ''' Delete the given *node*'''
+    '''Delete the given *node*'''
     rt.delete(node)
+
 
 def get_connected_objects_from_dcc_object(dcc_object_name):
     '''Return all objects connected to the given *dcc_object_name*'''
@@ -130,6 +133,7 @@ def get_connected_objects_from_dcc_object(dcc_object_name):
 
 
 ### SELECTION ###
+
 
 def select_all():
     '''Select all objects from the scene'''
@@ -179,7 +183,7 @@ def create_selection_set(set_name):
 
 
 def select_only_cameras():
-    ''' Select all cameras from the scene'''
+    '''Select all cameras from the scene'''
     selected_cameras = []
     for obj in rt.selection:
         if rt.SuperClassOf(obj) == 'camera':
@@ -188,6 +192,7 @@ def select_only_cameras():
 
 
 ### FILE OPERATIONS ###
+
 
 def open_file(path, options=None):
     '''Native open file function'''
@@ -200,7 +205,7 @@ def import_file(file_path, options=None):
         file_path,
         rt.name("autoRenameDups"),
         rt.name("neverReparent"),
-        rt.name("select")
+        rt.name("select"),
     )
 
 
@@ -241,6 +246,7 @@ def save_file(save_path, context_id=None, session=None, temp=True, save=True):
 # Follow this link for more reference commands in max:
 # https://help.autodesk.com/view/3DSMAX/2016/ENU/?guid=__files_GUID_090B28AB_5710_45BB_B324_8B6FD131A3C8_htm
 
+
 def reference_file(path, options=None):
     '''reference a Max scene file as a Scene XRef asset.'''
     # TODO: feature implement options: XRefObject true to use the object xref
@@ -276,12 +282,12 @@ def remove_reference_node(reference_node):
 
 
 def unload_reference_node(reference_node):
-    ''' Disable reference '''
+    '''Disable reference'''
     reference_node.disabled = True
 
 
 def load_reference_node(reference_node):
-    ''' Disable reference '''
+    '''Disable reference'''
     reference_node.disabled = False
 
 
@@ -290,11 +296,12 @@ def update_reference_path(reference_node, component_path):
     *component_path*'''
     reference_node.filename = component_path
 
+
 ### TIME OPERATIONS ###
 
+
 def get_time_range():
-    ''' Return the start and end frame of the current scene'''
+    '''Return the start and end frame of the current scene'''
     start = rt.animationRange.start
     end = rt.animationRange.end
     return (start, end)
-

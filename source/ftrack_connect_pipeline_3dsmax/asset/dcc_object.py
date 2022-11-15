@@ -44,7 +44,8 @@ class MaxDccObject(DccObject):
             rt.unfreeze(dcc_object)
         except:
             self.logger.debug(
-                "Could not unfreeze object {0}".format(dcc_object.Name))
+                "Could not unfreeze object {0}".format(dcc_object.Name)
+            )
 
         if str(k) == asset_const.REFERENCE_OBJECT:
             rt.setProperty(dcc_object, k, str(self.name))
@@ -104,9 +105,7 @@ class MaxDccObject(DccObject):
             rt.setTransformLockFlags(dcc_object, rt.name("all"))
         except Exception as e:
             self.logger.debug(
-                "Could not freeze object {0}, Error: {1}".format(
-                    name, e
-                )
+                "Could not freeze object {0}, Error: {1}".format(name, e)
             )
 
         self.logger.debug('Creating new dcc object {}'.format(dcc_object))
@@ -189,7 +188,7 @@ class MaxDccObject(DccObject):
         *objects* List of Max DAG objects
         '''
 
-        #Get DCC object
+        # Get DCC object
         dcc_object = rt.getNodeByName(self.name, exact=True)
 
         # Set all connected objects to Asset link attribute for reference.
@@ -208,7 +207,6 @@ class MaxDccObject(DccObject):
                     )
             )'''
 
-
         id_value = rt.getProperty(dcc_object, asset_const.ASSET_INFO_ID)
 
         max_utils.deselect_all()
@@ -223,12 +221,10 @@ class MaxDccObject(DccObject):
             rt.setProperty(obj, "ftrack", str(id_value))
             # Just for reference, set the name of the current obeject to
             # the asset_link
-            #TODO: Check if 3dsmax has a unic id for the objects, and in case,
+            # TODO: Check if 3dsmax has a unic id for the objects, and in case,
             # set that id to the asset_link attribute instead of the name.
             rt.setProperty(dcc_object, asset_const.ASSET_LINK, str(obj.Name))
 
             self.logger.debug(
-                'Node {} added to dcc_object {}'.format(
-                    obj, dcc_object
-                )
+                'Node {} added to dcc_object {}'.format(obj, dcc_object)
             )

@@ -656,10 +656,10 @@ class MaxAssetManagerEngine(AssetManagerEngine):
         self.dcc_object = dcc_object
 
         nodes = (
-                max_utils.get_connected_objects_from_dcc_object(
-                    self.dcc_object.name
-                )
-                or []
+            max_utils.get_connected_objects_from_dcc_object(
+                self.dcc_object.name
+            )
+            or []
         )
         # Get reference Node
         reference_node = max_utils.get_reference_node(self.dcc_object.name)
