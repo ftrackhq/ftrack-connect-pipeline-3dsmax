@@ -194,43 +194,7 @@ def open_file(path, options=None):
     return rt.loadMaxFile(path)
 
 
-def import_scene_XRef(file_path, options=None):
-    '''Import a Max scene file as a Scene XRef asset.'''
-    scene_node = rt.xrefs.addNewXRefFile(file_path)
-    return scene_node
-
-
-def re_import_scene_XRef(file_path, parent_helper_node_name):
-    '''Import a Max scene file as a Scene XRef asset and parent it
-    under the given *parent_helper_node_name*.'''
-    node = rt.getNodeByName(parent_helper_node_name, exact=True)
-    scene_node = rt.xrefs.addNewXRefFile(file_path)
-    scene_node.parent = node
-    return scene_node
-
-
-def import_obj_XRefs(file_path, options=None):
-    '''Import all the objects in a Max scene file as Object XRefs'''
-    x_ref_objs = rt.getMAXFileObjectNames(file_path)
-    newObjs = rt.xrefs.addNewXRefObject(
-        file_path, x_ref_objs, dupMtlNameAction=rt.name("autoRename")
-    )
-    rt.select(newObjs)
-    return newObjs
-
-
-def scene_XRef_imported(node):
-    '''Check if a Scene XRef exists under the given *node* '''
-    result = False
-    num_scene_refs = rt.xrefs.getXRefFileCount()
-    for idx in range(1, num_scene_refs):
-        scene_ref = rt.xrefs.getXrefFile(idx)
-        if scene_ref.parent.Name == node.Name:
-            result = True
-    return result
-
-
-def merge_max_file(file_path, options=None):
+def import_file(file_path, options=None):
     '''Import a Max scene into the current scene.'''
     return rt.mergemaxfile(
         file_path,
@@ -274,30 +238,57 @@ def save_file(save_path, context_id=None, session=None, temp=True, save=True):
 
 
 ### REFERENCES ###
+# Follow this link for more reference commands in max:
+# https://help.autodesk.com/view/3DSMAX/2016/ENU/?guid=__files_GUID_090B28AB_5710_45BB_B324_8B6FD131A3C8_htm
 
-def remove_reference_node(referenceNode):
-    # return cmds.file(rfn=referenceNode, rr=True)
-    # TODO: To be implemented
-    pass
-
-
-def unload_reference_node(referenceNode):
-    # return cmds.file(unloadReference=referenceNode)
-    # TODO: To be implemented
-    pass
-
-
-def load_reference_node(referenceNode):
-    # return cmds.file(loadReference=referenceNode)
-    # TODO: To be implemented
-    pass
+def reference_file(path, options=None):
+    '''reference a Max scene file as a Scene XRef asset.'''
+    # TODO: feature implement options: XRefObject true to use the object xref
+    #  reference mode wich will be something along the following lines:
+    #  x_ref_objs = rt.getMAXFileObjectNames(file_path)
+    #     newObjs = rt.xrefs.addNewXRefObject(
+    #         file_path, x_ref_objs, dupMtlNameAction=rt.name("autoRename")
+    #     )
+    #     rt.select(newObjs)
+    #     return newObjs
+    scene_node = rt.xrefs.addNewXRefFile(path)
+    return scene_node
 
 
-def getReferenceNode(assetLink):
-    '''Return the references dcc_objects for the given *assetLink*'''
-    # TODO: To be implemented
-    pass
+def get_reference_node(dcc_object_name):
+    '''
+    Return the scene reference_node associated to the given
+    *dcc_object_name*
+    '''
+    dcc_object = rt.getNodeByName(dcc_object_name, exact=True)
+    if not dcc_object:
+        return
+    component_path = asset_const.COMPONENT_PATH
+    for idx in range(1, rt.xrefs.getXRefFileCount()):
+        reference_node = rt.xrefs.getXrefFile(idx)
+        if reference_node.filename == component_path:
+            return reference_node
 
+
+def remove_reference_node(reference_node):
+    '''Remove reference'''
+    rt.delete(reference_node)
+
+
+def unload_reference_node(reference_node):
+    ''' Disable reference '''
+    reference_node.disabled = True
+
+
+def load_reference_node(reference_node):
+    ''' Disable reference '''
+    reference_node.disabled = False
+
+
+def update_reference_path(reference_node, component_path):
+    '''Update the path of the given *reference_node* with the given
+    *component_path*'''
+    reference_node.filename = component_path
 
 ### TIME OPERATIONS ###
 
