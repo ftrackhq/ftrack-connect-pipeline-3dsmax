@@ -25,7 +25,7 @@ class MaxLoaderImporterPlugin(plugin.LoaderImporterPlugin, MaxBasePlugin):
 
     dependency_load_mode = load_const.REFERENCE_MODE
 
-    # @max_utils.run_in_main_thread
+    @max_utils.run_in_main_thread
     def get_current_objects(self):
         return max_utils.get_current_scene_objects()
 
