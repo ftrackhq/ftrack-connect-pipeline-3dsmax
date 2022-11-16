@@ -33,41 +33,44 @@ class MaxDccObject(DccObject):
         Sets the given *v* into the given *k* and automatically set the
         attributes of the current self :obj:`name` on the DCC
         '''
-        dcc_object = rt.getNodeByName(self.name, exact=True)
+        # Get internal 3dMax dcc object
+        dcc_object_node = rt.getNodeByName(self.name, exact=True)
         # Get the Max Dcc object
-        if not dcc_object:
+        if not dcc_object_node:
             self.logger.warning(
                 'Could not find MaxDccObject with name {}'.format(self.name)
             )
             return
         # Unfreeze the object to enable modifications
         try:
-            rt.unfreeze(dcc_object)
+            rt.unfreeze(dcc_object_node)
         except:
             self.logger.debug(
-                "Could not unfreeze object {0}".format(dcc_object.Name)
+                "Could not unfreeze object {0}".format(self.name)
             )
         if str(k) == asset_const.REFERENCE_OBJECT:
-            rt.setProperty(dcc_object, k, core_utils.safe_string(self.name))
+            rt.setProperty(
+                dcc_object_node, k, core_utils.safe_string(self.name)
+            )
         elif str(k) in [
             asset_const.IS_LATEST_VERSION,
             asset_const.OBJECTS_LOADED,
         ]:
-            rt.setProperty(dcc_object, k, bool(v))
+            rt.setProperty(dcc_object_node, k, bool(v))
         elif str(k) == asset_const.DEPENDENCY_IDS:
             rt.setProperty(
-                dcc_object, k, core_utils.safe_string(','.join(v or []))
+                dcc_object_node, k, core_utils.safe_string(','.join(v or []))
             )
         else:
-            rt.setProperty(dcc_object, k, v)
+            rt.setProperty(dcc_object_node, k, v)
 
         # Freeze the object to make sure no one make modifications on it.
         try:
-            rt.freeze(dcc_object)
+            rt.freeze(dcc_object_node)
         except Exception as e:
             self.logger.debug(
                 "Could not freeze object {0}, Error: {1}".format(
-                    dcc_object.Name, e
+                    dcc_object_node.Name, e
                 )
             )
 
@@ -82,19 +85,20 @@ class MaxDccObject(DccObject):
             self.logger.error(error_message)
             raise RuntimeError(error_message)
 
-        dcc_object = rt.FtrackAssetHelper()
-        dcc_object.Name = name
+        # Create internal Max Dcc object
+        dcc_object_node = rt.FtrackAssetHelper()
+        dcc_object_node.Name = name
 
         # Try to freeze the helper object and lock the transform.
         try:
-            rt.freeze(dcc_object)
-            rt.setTransformLockFlags(dcc_object, rt.name("all"))
+            rt.freeze(dcc_object_node)
+            rt.setTransformLockFlags(dcc_object_node, rt.name("all"))
         except Exception as e:
             self.logger.debug(
                 "Could not freeze object {0}, Error: {1}".format(name, e)
             )
 
-        self.logger.debug('Creating new dcc object {}'.format(dcc_object))
+        self.logger.debug('Creating new dcc object {}'.format(dcc_object_node))
         self.name = name
         return self.name
 
@@ -114,13 +118,15 @@ class MaxDccObject(DccObject):
         with the given *asset_info_id* and returns them if matches.
         '''
         ftrack_asset_nodes = max_utils.get_ftrack_nodes()
-        for dcc_object in ftrack_asset_nodes:
-            id_value = rt.getProperty(dcc_object, asset_const.ASSET_INFO_ID)
+        for dcc_object_node in ftrack_asset_nodes:
+            id_value = rt.getProperty(
+                dcc_object_node, asset_const.ASSET_INFO_ID
+            )
             if id_value == asset_info_id:
                 self.logger.debug(
-                    'Found existing object: {}'.format(dcc_object.Name)
+                    'Found existing object: {}'.format(dcc_object_node.Name)
                 )
-                self.name = dcc_object.Name
+                self.name = dcc_object_node.Name
                 return self.name
 
         self.logger.warning(
@@ -143,15 +149,15 @@ class MaxDccObject(DccObject):
             '{0}.{1}'.format(__name__, __class__.__name__)
         )
         param_dict = {}
-        dcc_object = rt.getNodeByName(object_name, exact=True)
+        dcc_object_node = rt.getNodeByName(object_name, exact=True)
         # Get the Max Dcc object
-        if not dcc_object:
+        if not dcc_object_node:
             error_message = "{} Object doesn't exists".format(object_name)
             logger.error(error_message)
             return param_dict
         # Get properties from the object
-        for attr in rt.getPropNames(dcc_object):
-            value = rt.getProperty(dcc_object, attr)
+        for attr in rt.getPropNames(dcc_object_node):
+            value = rt.getProperty(dcc_object_node, attr)
             if attr == asset_const.DEPENDENCY_IDS:
                 value = []
                 if len(value) > 0:
@@ -164,7 +170,7 @@ class MaxDccObject(DccObject):
         Checks if the given *object* has the same ClassID as the
         current ftrack_plugin_id
         '''
-        if object.ClassID == self.ftrack_plugin_id:
+        if tuple(object.ClassID) == self.ftrack_plugin_id:
             return True
 
         return False
@@ -178,7 +184,7 @@ class MaxDccObject(DccObject):
         '''
 
         # Get DCC object
-        dcc_object = rt.getNodeByName(self.name, exact=True)
+        dcc_object_node = rt.getNodeByName(self.name, exact=True)
 
         # Set all connected objects to Asset link attribute for reference.
         # And set dcc_object name to ftrack attribute of all the objects.
@@ -196,7 +202,7 @@ class MaxDccObject(DccObject):
                     )
             )'''
 
-        id_value = rt.getProperty(dcc_object, asset_const.ASSET_INFO_ID)
+        id_value = rt.getProperty(dcc_object_node, asset_const.ASSET_INFO_ID)
 
         max_utils.deselect_all()
         for obj in objects:
@@ -212,8 +218,10 @@ class MaxDccObject(DccObject):
             # the asset_link
             # TODO: Check if 3dsmax has a unique id for the objects, and in case,
             # set that id to the asset_link attribute instead of the name.
-            rt.setProperty(dcc_object, asset_const.ASSET_LINK, str(obj.Name))
+            rt.setProperty(
+                dcc_object_node, asset_const.ASSET_LINK, str(obj.Name)
+            )
 
             self.logger.debug(
-                'Node {} added to dcc_object {}'.format(obj, dcc_object)
+                'Node {} added to dcc_object {}'.format(obj, dcc_object_node)
             )

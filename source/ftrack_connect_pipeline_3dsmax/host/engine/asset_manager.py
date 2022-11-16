@@ -53,9 +53,9 @@ class MaxAssetManagerEngine(AssetManagerEngine):
         ftrack_asset_nodes = max_utils.get_ftrack_nodes()
         ftrack_asset_info_list = []
         if ftrack_asset_nodes:
-            for dcc_object in ftrack_asset_nodes:
+            for dcc_object_node in ftrack_asset_nodes:
                 param_dict = self.DccObject.dictionary_from_object(
-                    dcc_object.Name
+                    dcc_object_node.Name
                 )
                 node_asset_info = FtrackAssetInfo(param_dict)
                 ftrack_asset_info_list.append(node_asset_info)

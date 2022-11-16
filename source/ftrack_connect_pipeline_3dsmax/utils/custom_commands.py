@@ -62,7 +62,7 @@ def get_main_window():
 
 
 def get_ftrack_nodes():
-    '''Returns all DCC objects in the scene'''
+    '''Returns all DCC nodes in the scene'''
     dcc_objects = []
     for obj in rt.rootScene.world.children:
         if rt.SuperClassOf(obj) == rt.helper:
@@ -122,10 +122,10 @@ def delete_node(node):
 def get_connected_objects_from_dcc_object(dcc_object_name):
     '''Return all objects connected to the given *dcc_object_name*'''
     objects = []
-    dcc_object = rt.getNodeByName(dcc_object_name, exact=True)
-    if not dcc_object:
+    dcc_object_node = rt.getNodeByName(dcc_object_name, exact=True)
+    if not dcc_object_node:
         return
-    id_value = rt.getProperty(dcc_object, asset_const.ASSET_INFO_ID)
+    id_value = rt.getProperty(dcc_object_node, asset_const.ASSET_INFO_ID)
     for obj in rt.rootScene.world.children:
         if rt.isProperty(obj, "ftrack"):
             if id_value == rt.getProperty(obj, "ftrack"):
@@ -267,8 +267,8 @@ def get_reference_node(dcc_object_name):
     Return the scene reference_node associated to the given
     *dcc_object_name*
     '''
-    dcc_object = rt.getNodeByName(dcc_object_name, exact=True)
-    if not dcc_object:
+    dcc_object_node = rt.getNodeByName(dcc_object_name, exact=True)
+    if not dcc_object_node:
         return
     component_path = asset_const.COMPONENT_PATH
     for idx in range(1, rt.xrefs.getXRefFileCount()):
