@@ -30,7 +30,6 @@ class MaxAssetManagerEngine(AssetManagerEngine):
             event_manager, host_types, host_id, asset_type_name=asset_type_name
         )
 
-    @max_utils.run_in_main_thread
     def discover_assets(self, assets=None, options=None, plugin=None):
         '''
         Discover all the assets in the scene:
@@ -53,10 +52,11 @@ class MaxAssetManagerEngine(AssetManagerEngine):
 
         ftrack_asset_nodes = max_utils.get_ftrack_nodes()
         ftrack_asset_info_list = []
-
         if ftrack_asset_nodes:
-            for node_name in ftrack_asset_nodes:
-                param_dict = self.DccObject.dictionary_from_object(node_name)
+            for dcc_object in ftrack_asset_nodes:
+                param_dict = self.DccObject.dictionary_from_object(
+                    dcc_object.Name
+                )
                 node_asset_info = FtrackAssetInfo(param_dict)
                 ftrack_asset_info_list.append(node_asset_info)
 

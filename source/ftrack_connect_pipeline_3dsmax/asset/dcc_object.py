@@ -4,6 +4,7 @@
 import logging
 
 from ftrack_connect_pipeline.asset.dcc_object import DccObject
+from ftrack_connect_pipeline import utils as core_utils
 from ftrack_connect_pipeline_3dsmax.constants import asset as asset_const
 from ftrack_connect_pipeline_3dsmax.utils import custom_commands as max_utils
 
@@ -46,34 +47,19 @@ class MaxDccObject(DccObject):
             self.logger.debug(
                 "Could not unfreeze object {0}".format(dcc_object.Name)
             )
-
         if str(k) == asset_const.REFERENCE_OBJECT:
-            rt.setProperty(dcc_object, k, str(self.name))
-        elif str(k) == asset_const.IS_LATEST_VERSION:
+            rt.setProperty(dcc_object, k, core_utils.safe_string(self.name))
+        elif str(k) in [
+            asset_const.IS_LATEST_VERSION,
+            asset_const.OBJECTS_LOADED,
+        ]:
             rt.setProperty(dcc_object, k, bool(v))
-        # TODO: Check if this is necesary, shouldnt be.
-        # elif str(k) == asset_const.ASSET_INFO_OPTIONS:
-        #     decoded_value = self.asset_info[str(k)]
-        #     json_data = json.dumps(decoded_value)
-        #     if six.PY2:
-        #         encoded_value = base64.b64encode(json_data)
-        #     else:
-        #         input_bytes = json_data.encode('utf8')
-        #         encoded_value = base64.b64encode(input_bytes).decode('ascii')
-        #     rt.setProperty(
-        #         dcc_object, k, str(encoded_value)
-        #     )
+        elif str(k) == asset_const.DEPENDENCY_IDS:
+            rt.setProperty(
+                dcc_object, k, core_utils.safe_string(','.join(v or []))
+            )
         else:
             rt.setProperty(dcc_object, k, v)
-        # TODO: This might be necessary.
-        # elif k == asset_const.DEPENDENCY_IDS:
-        #     cmds.setAttr(
-        #         '{}.{}'.format(self.name, k),
-        #         *([len(v)] + v),
-        #         type="stringArray",
-        #         l=True
-        #     )
-        #
 
         # Freeze the object to make sure no one make modifications on it.
         try:
@@ -129,9 +115,7 @@ class MaxDccObject(DccObject):
         '''
         ftrack_asset_nodes = max_utils.get_ftrack_nodes()
         for dcc_object in ftrack_asset_nodes:
-
             id_value = rt.getProperty(dcc_object, asset_const.ASSET_INFO_ID)
-
             if id_value == asset_info_id:
                 self.logger.debug(
                     'Found existing object: {}'.format(dcc_object.Name)
@@ -139,8 +123,8 @@ class MaxDccObject(DccObject):
                 self.name = dcc_object.Name
                 return self.name
 
-        self.logger.debug(
-            "Couldn't found an existing object for the asset info id: {}".format(
+        self.logger.warning(
+            "Couldn't find an existing object for the asset info id: {}".format(
                 asset_info_id
             )
         )
@@ -167,7 +151,12 @@ class MaxDccObject(DccObject):
             return param_dict
         # Get properties from the object
         for attr in rt.getPropNames(dcc_object):
-            param_dict[str(attr)] = rt.getProperty(dcc_object, attr)
+            value = rt.getProperty(dcc_object, attr)
+            if attr == asset_const.DEPENDENCY_IDS:
+                value = []
+                if len(value) > 0:
+                    value = value.split(',')
+            param_dict[str(attr)] = value
         return param_dict
 
     def is_dcc_object(self, object):
@@ -221,11 +210,10 @@ class MaxDccObject(DccObject):
             rt.setProperty(obj, "ftrack", str(id_value))
             # Just for reference, set the name of the current obeject to
             # the asset_link
-            # TODO: Check if 3dsmax has a unic id for the objects, and in case,
+            # TODO: Check if 3dsmax has a unique id for the objects, and in case,
             # set that id to the asset_link attribute instead of the name.
             rt.setProperty(dcc_object, asset_const.ASSET_LINK, str(obj.Name))
 
             self.logger.debug(
                 'Node {} added to dcc_object {}'.format(obj, dcc_object)
             )
-
