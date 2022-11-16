@@ -583,13 +583,14 @@ class MaxAssetManagerEngine(AssetManagerEngine):
             for node in nodes:
                 self.logger.debug("Removing object: {}".format(node))
                 try:
-                    if max_utils.node_exists(node):
+                    if max_utils.node_exists(node.Name):
+                        result.append(str(node.Name))
                         max_utils.delete_node(node)
-                        result.append(str(node))
                         status = core_constants.SUCCESS_STATUS
                 except Exception as error:
+                    self.logger.exception(error)
                     message = str(
-                        'Node: {0} could not be deleted, error: {1}'.format(
+                        'Node: {0} could not be deleted, details: {1}'.format(
                             node, error
                         )
                     )
@@ -671,6 +672,7 @@ class MaxAssetManagerEngine(AssetManagerEngine):
                 result.append(str(reference_node))
                 status = core_constants.SUCCESS_STATUS
             except Exception as error:
+                self.logger.exception(error)
                 message = str(
                     'Could not remove the reference node {}, error: {}'.format(
                         str(reference_node), error
@@ -695,11 +697,12 @@ class MaxAssetManagerEngine(AssetManagerEngine):
             for node in nodes:
                 self.logger.debug("Removing object: {}".format(node))
                 try:
-                    if max_utils.node_exists(node):
+                    if max_utils.node_exists(node.Name):
+                        result.append(str(node.Name))
                         max_utils.delete_node(node)
-                        result.append(str(node))
                         status = core_constants.SUCCESS_STATUS
                 except Exception as error:
+                    self.logger.exception(error)
                     message = str(
                         'Node: {0} could not be deleted, error: {1}'.format(
                             node, error
@@ -723,10 +726,12 @@ class MaxAssetManagerEngine(AssetManagerEngine):
 
         if max_utils.node_exists(self.dcc_object.name):
             try:
-                max_utils.delete_node(self.dcc_object.name)
+                node = max_utils.get_node(self.dcc_object.name)
+                max_utils.delete_node(node)
                 result.append(str(self.dcc_object.name))
                 status = core_constants.SUCCESS_STATUS
             except Exception as error:
+                self.logger.exception(error)
                 message = str(
                     'Could not delete the dcc_object, error: {}'.format(error)
                 )

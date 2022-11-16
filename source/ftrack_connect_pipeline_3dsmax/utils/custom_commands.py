@@ -114,6 +114,11 @@ def node_exists(node_name):
     return True
 
 
+def get_node(node_name):
+    '''Return the Max node identified by name'''
+    return rt.getNodeByName(node_name, exact=True)
+
+
 def delete_node(node):
     '''Delete the given *node*'''
     rt.delete(node)
