@@ -47,13 +47,20 @@ def on_launch_3dsmax_pipeline(session, event):
         os.path.join(plugin_base_dir, 'resource', 'plugins', 'python')
     )
 
+    max_definitions_path = os.path.join(
+        plugin_base_dir, 'resource', 'definitions'
+    )
+
     max_bootstrap_plugin_path = os.path.join(max_bootstrap_path, 'plugins')
 
     max_startup_script = os.path.join(max_bootstrap_path, 'initftrack.ms')
 
     pipeline_max_base_data['integration']['env'] = {
         '3DSMAX_PLUG_IN_PATH.set': max_bootstrap_plugin_path,
-        'FTRACK_EVENT_PLUGIN_PATH.prepend': max_plugins_path,
+        'FTRACK_EVENT_PLUGIN_PATH.prepend': os.path.pathsep.join(
+            [max_plugins_path, max_definitions_path]
+        ),
+        'FTRACK_DEFINITION_PATH.prepend': max_definitions_path,
         'PYTHONPATH.prepend': os.path.pathsep.join(
             [python_dependencies, max_startup_script]
         ),
